@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "skills": {
+    "character-consistency": {
+      "source": "runware/runware-skills",
+      "sourceType": "github",
+      "skillPath": "skills/character-consistency/SKILL.md",
+      "computedHash": "3df77b18ffc1d8e550bf1caf6ee236f8cb43f454c8258e46f36cd3001866edca"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "7bc223e2aafbdbf6e50ea243ba6ef67fe432bb069ab439fea0390795dac0bf7f"
+    },
+    "prompt-images": {
+      "source": "replicate/skills",
+      "sourceType": "github",
+      "skillPath": "skills/prompt-images/SKILL.md",
+      "computedHash": "7bddaca491bb837526139047e856c0837dedc359fbc9073a0ead3d1e0f2c999d"
+    },
+    "prompt-videos": {
+      "source": "replicate/skills",
+      "sourceType": "github",
+      "skillPath": "skills/prompt-videos/SKILL.md",
+      "computedHash": "48ba1f35a897b1931d6ea8e244569167508e24e4716f0727efcccbb9623d4368"
+    },
+    "video-prompting": {
+      "source": "square-zero-labs/video-prompting-skill",
+      "sourceType": "github",
+      "skillPath": "video-prompting/SKILL.md",
+      "computedHash": "a163ca3319056d86e4759b263bd6c142c1b8d963c9f431ed9d397ce54e25e80e"
+    }
+  }
+}
