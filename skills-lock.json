@@ -13,6 +13,18 @@
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "7bc223e2aafbdbf6e50ea243ba6ef67fe432bb069ab439fea0390795dac0bf7f"
     },
+    "food-beverage-content-production": {
+      "source": "calesthio/generative-media-skills",
+      "sourceType": "github",
+      "skillPath": "skills/production/content-formats/food-beverage-content-production/SKILL.md",
+      "computedHash": "76ac06a1be732b51a77834a9c21faedee6644de88626854f532c45d906e7f4cb"
+    },
+    "kling-3-0": {
+      "source": "prime-skills/runcomfy-agent-skills",
+      "sourceType": "github",
+      "skillPath": "kling-3-0/SKILL.md",
+      "computedHash": "111704adf0de8d97098e311917b26ab9748f22c99e091d23e9ca4758d62a1f18"
+    },
     "kling-3-prompting": {
       "source": "aedev-tools/kling-3-prompting-skill",
       "sourceType": "github",
@@ -24,6 +36,12 @@
       "sourceType": "github",
       "skillPath": "skills/kling-4-prompting/SKILL.md",
       "computedHash": "2110ac39b49d36b207f17531a01dbbf6af55467b9b1a984d228c28e35b23c0cd"
+    },
+    "kling-cli": {
+      "source": "klingai-tech/skills",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "b87084f86354c32d091e2b5854e13ed0623464b88ff694568324ca098d120f24"
     },
     "prompt-images": {
       "source": "replicate/skills",
@@ -37,6 +55,12 @@
       "skillPath": "skills/prompt-videos/SKILL.md",
       "computedHash": "48ba1f35a897b1931d6ea8e244569167508e24e4716f0727efcccbb9623d4368"
     },
+    "short-form-video-script": {
+      "source": "social-media-skills/skills",
+      "sourceType": "github",
+      "skillPath": "skills/short-form-video-script/SKILL.md",
+      "computedHash": "e9c86bee46801139b7271ccb382687db14a5e41de446f63dfe151fc8b9e4ddfd"
+    },
     "video-prompting": {
       "source": "square-zero-labs/video-prompting-skill",
       "sourceType": "github",
@@ -48,6 +72,18 @@
       "sourceType": "github",
       "skillPath": "agent-skills/codex/video-to-superprompt/SKILL.md",
       "computedHash": "7e1ef04a41f679010740b83146c01b590de922d4a5a63f0c4d7d6d84bf14f4c0"
+    },
+    "viral-hook-creator": {
+      "source": "ognjengt/founder-skills",
+      "sourceType": "github",
+      "skillPath": "skills/viral-hook-creator/SKILL.md",
+      "computedHash": "e83cb10af826b12bdf578452838ac90720f8fdff97635c7342fd5789098a7b4c"
+    },
+    "viral-reverse-engineering": {
+      "source": "social-media-skills/skills",
+      "sourceType": "github",
+      "skillPath": "skills/viral-reverse-engineering/SKILL.md",
+      "computedHash": "0c6138313d789ad1b6bc525ba79040bff6e06f758a100ceb68192f387998dde5"
     }
   }
 }
