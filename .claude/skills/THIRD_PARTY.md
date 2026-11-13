@@ -8,3 +8,5 @@ Design skills copied as-is from their authors:
 - prompt-images, prompt-videos (replicate/skills)
 - video-prompting (square-zero-labs/video-prompting-skill)
 - character-consistency (runware/runware-skills)
+- video-to-superprompt (mengto/skills)
+- kling-4-prompting, kling-3-prompting (aedev-tools)

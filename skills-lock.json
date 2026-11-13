@@ -13,6 +13,18 @@
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "7bc223e2aafbdbf6e50ea243ba6ef67fe432bb069ab439fea0390795dac0bf7f"
     },
+    "kling-3-prompting": {
+      "source": "aedev-tools/kling-3-prompting-skill",
+      "sourceType": "github",
+      "skillPath": "skills/kling-3-prompting/SKILL.md",
+      "computedHash": "835d1354b7931c0ac90d6ece62c5236dcdd4f96123ddc0e1b6da861b5fdef715"
+    },
+    "kling-4-prompting": {
+      "source": "aedev-tools/kling-4-prompting-skill",
+      "sourceType": "github",
+      "skillPath": "skills/kling-4-prompting/SKILL.md",
+      "computedHash": "2110ac39b49d36b207f17531a01dbbf6af55467b9b1a984d228c28e35b23c0cd"
+    },
     "prompt-images": {
       "source": "replicate/skills",
       "sourceType": "github",
@@ -30,6 +42,12 @@
       "sourceType": "github",
       "skillPath": "video-prompting/SKILL.md",
       "computedHash": "a163ca3319056d86e4759b263bd6c142c1b8d963c9f431ed9d397ce54e25e80e"
+    },
+    "video-to-superprompt": {
+      "source": "mengto/skills",
+      "sourceType": "github",
+      "skillPath": "agent-skills/codex/video-to-superprompt/SKILL.md",
+      "computedHash": "7e1ef04a41f679010740b83146c01b590de922d4a5a63f0c4d7d6d84bf14f4c0"
     }
   }
 }
