@@ -71,10 +71,10 @@ def frame(f,t):
             fr=fr+(np.array([255,214,150],np.float32)-fr)*band
     if t<TITLE_END:
         a=1.0 if t<TITLE_END-0.25 else 1-ease((t-(TITLE_END-0.25))/0.25)
-        sc=1.0+0.04*(1-ease(t/0.35));P=scaled(PLATE,sc)
+        P=PLATE  # ПРАВИЛО: плашка и название видны с кадра 0, без анимации появления
         comp(fr,P,540-P.shape[1]//2,PY+(PH-P.shape[0])//2,a)
         spp=min(max((t-0.45)/1.1,0),1)
-        aa=ease((t-0.1)/0.35)*a;dy=int(25*(1-ease((t-0.1)/0.35)))
+        aa=a;dy=0  # название с кадра 0 (обложка в сетке)
         comp(fr,shimmer(T1,spp) if 0<spp<1 else T1,540-T1.shape[1]//2,PY+(PH-T1.shape[0])//2+dy,aa)
     if t>=LOGO_IN:
         fr=fr*(1-grad*min(1,ease((t-LOGO_IN)/0.3)))
