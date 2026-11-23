@@ -121,7 +121,7 @@ json.dump({'v': 10, 'keys': KEYS, 'starts': starts, 'durs': durs, 'total': TOTAL
 def BL(i): return starts[i + 1] - starts[i]
 
 # ---------- фирменные слои ----------
-tpl.CORNER['sub'] = (52, 400, 381, 410)   # подпись ближе к DJIGIT (Вал 23.11 21:28)
+tpl.CORNER['sub'] = (52, 400, 381, 410)   # стандарт: подпись вплотную к DJIGIT (Вал 23.11), то же в tpl.py
 CORNER = A(tpl.corner_layer().crop((0, 0, 460, 480)))
 HB = tpl.CORNER['horse']; HXY = (HB[0] - 12, HB[1] - 12, HB[2] + 13, HB[3] + 13)
 LOGO_IN = starts[1]

@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 F='/home/claude/work/prev/'
 LOGO='/home/claude/djigit-media/ref/logo.png'
 GOLD_TOP=(214,183,124);GOLD_BOT=(162,124,64)
-CORNER={'horse':(128,96,305,318),'dj':(81,329,358,386),'sub':(52,423,381,433)}
+CORNER={'horse':(128,96,305,318),'dj':(81,329,358,386),'sub':(52,400,381,410)}
 END={'horse':(395,432,684,789),'dj':(337,838,749,923),'sub':(203,963,875,986),
      'q1':(196,1070,880,1118),'q2':(221,1128,823,1196),'site':(458,1416,621,1450),
      'btn':(160,1222,919,1352)}
