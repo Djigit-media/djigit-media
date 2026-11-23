@@ -121,6 +121,7 @@ json.dump({'v': 10, 'keys': KEYS, 'starts': starts, 'durs': durs, 'total': TOTAL
 def BL(i): return starts[i + 1] - starts[i]
 
 # ---------- фирменные слои ----------
+tpl.CORNER['sub'] = (52, 400, 381, 410)   # подпись ближе к DJIGIT (Вал 23.11 21:28)
 CORNER = A(tpl.corner_layer().crop((0, 0, 460, 480)))
 HB = tpl.CORNER['horse']; HXY = (HB[0] - 12, HB[1] - 12, HB[2] + 13, HB[3] + 13)
 LOGO_IN = starts[1]
@@ -172,7 +173,7 @@ SHOTS = {
  's1': [SH(0, 'black', 1.0, 1.08)],
  's2': [SH(0, 'green', 1.08, 1.0)],
  's3': [SH(0, 'classic', 1.0, 1.08, dy=.08)],
- 'sph': [SH(0, 'sphere', 1.12, 1.2, .5, .8), SH(.5, 'sphere2', 1.07, 1.0)],
+ 'sph': [SH(0, 'sphere', 1.0, 1.03, .5, .45), SH(.5, 'sphere2', 1.07, 1.0)],
  'don': [SH(0, 'don', 1.0, 1.08)],
  'kha': [SH(0, 'khach', .96, 1.04, .5, .66, 0, -.04)],
  'ice': [SH(0, 'ice', 1.0, 1.08, .5, .55, cy=925)],
@@ -286,23 +287,26 @@ def old_price(t, sz=30):
     brand.draw_text(L, int(15 + 20 + w0 + w1 / 2), 15, t, 700, sz, (200, 200, 200, 255))
     yy = 15 + int(sz * 0.58); dr.line((15 + 20 + w0 - 4, yy, 15 + 20 + w0 + w1 + 4, yy), fill=(220, 50, 40, 255), width=4)
     return A(L)
-HK_X = (45, 545); HK_Y = 650; HK_W, HK_H = 490, 206
+HK_X = (45, 545); HK_Y = 650; HK_W, HK_H = 490, 244
 HK_PL = A(brand.plate(HK_W, HK_H, 26))
 HK_ROWS = []
 for nm, old, prof in (('КИОСК', '7 000 €', 'от 3 000 €'), ('ФАСАДНОЕ', '9 000 €', 'от 10 000 €')):
-    HK_ROWS.append((A(tlayer(nm, 900, 40, gold=True, maxw=440)), A(tlayer('ВЗНОС 5 000 €', 900, 40, fill=WHITE, maxw=440)),
-                    old_price(old, 27), A(tlayer('ПРИБЫЛЬ ' + prof.upper() + '/МЕС', 900, 28, gold=True, maxw=450))))
+    HK_ROWS.append((A(tlayer(nm, 900, 38, gold=True, maxw=440)), A(tlayer('ВЗНОС 5 000 €', 900, 30, fill=WHITE, maxw=440)),
+                    old_price(old, 22), A(tlayer(prof.upper().replace('ОТ ', 'от ') + '/МЕС', 900, 34, gold=True, maxw=360)),
+                    A(tlayer('ЧИСТАЯ ПРИБЫЛЬ', 800, 22, fill=WHITE, maxw=440))))
 HK_T = {'fee': 7.8, 'prof': (12.3, 14.0)}   # whisper по vo10/00_hook.wav: «взнос» 7.82, «киоск» 12.28, «фасадное» 14.02
 def hook_chips(fr, lt, a):
     for j, x in enumerate(HK_X):
-        comp(fr, HK_PL, x, HK_Y, a); cx = x + HK_W // 2; nm, fee, old, prof = HK_ROWS[j]
-        tp = HK_T['prof'][j]; hf = 0 <= lt - HK_T['fee'] < 1.4; hp = 0 <= lt - tp < 1.4
+        comp(fr, HK_PL, x, HK_Y, a); cx = x + HK_W // 2; nm, fee, old, prof, plab = HK_ROWS[j]
+        tp = HK_T['prof'][j]; hf = 0 <= lt - HK_T['fee'] < 1.4
         Lf = shimmer(fee, (lt - HK_T['fee']) / 1.2, 90) if hf else fee
-        Lp = shimmer(prof, (lt - tp) / 1.2, 90) if hp else prof
-        if hf: Lf = scaled(Lf, 1 + 0.08 * math.sin(min(1, (lt - HK_T['fee']) / 0.5) * math.pi))
-        if hp: Lp = scaled(Lp, 1 + 0.05 * math.sin(min(1, (lt - tp) / 0.5) * math.pi))
-        for Lr, yy in ((nm, 0), (Lf, 48), (old, 96), (Lp, 136)):
-            comp(fr, Lr, cx - Lr.shape[1] // 2, HK_Y + yy - (Lr.shape[0] - fee.shape[0]) // 2 * (Lr is Lf or Lr is Lp), a)
+        qp = (lt - tp) / 0.35                                   # прибыль: при озвучке растёт до 1.3 и остаётся крупной
+        sp = 1.0 if qp <= 0 else 1.0 + 0.25 * eback(min(1, qp), 2.0)
+        Lp = shimmer(prof, (lt - tp) / 1.2, 90) if 0 <= lt - tp < 1.4 else prof
+        Lp = scaled(Lp, sp)
+        for Lr, yy in ((nm, 0), (Lf, 42), (old, 78), (plab, 108)):
+            comp(fr, Lr, cx - Lr.shape[1] // 2, HK_Y + yy, a)
+        comp(fr, Lp, cx - Lp.shape[1] // 2, HK_Y + 184 - Lp.shape[0] // 2, a)
 def pop(fr, L, cx, cy, q, shim_t=None, big=1.6, out=1.0):
     if q <= 0: return
     sc = big - (big - 1) * eback(min(1, q), 2.2); Ln = scaled(L, sc)
@@ -429,6 +433,11 @@ def why_scene(fr, t):
         Wm, Wg, Ws = WM[j]; Lm = Wg if active else Wm
         if active and 0.3 < lt - tj < 1.3: Lm = shimmer(Lm, lt - tj - 0.3, 90)
         comp(fr, Lm, 165 + dx, y - 4, a); comp(fr, Ws, 165 + dx, y + 70, a)
+        tu = (nxt if j < 5 else Lall - 0.3) - 0.55; qu = (lt - tu) / 0.35          # пункт прозвучал: «жик» золотой чертой, черта остаётся
+        if qu > 0:
+            x0u = 165; x1u = x0u + int(780 * ease(min(1, qu)))
+            fr[y + 140:y + 144, x0u:x1u] = fr[y + 140:y + 144, x0u:x1u] * (1 - out) + np.array([214, 183, 124], np.float32) * out
+            if qu < 1: fr[y + 136:y + 148, max(x0u, x1u - 40):x1u] = np.minimum(255, fr[y + 136:y + 148, max(x0u, x1u - 40):x1u] + 90 * out)
     return fr
 def de_scene(fr, lt, L):
     out = 1 - ease((lt - (L - 0.22)) / 0.22) if lt > L - 0.22 else 1; Y0 = 620
@@ -495,7 +504,7 @@ def slots_scene(fr, lt, L):
         if qk > 0:
             pul = 1 + 0.05 * math.sin(lt * 6 - k); Ls = scaled(TOKB[k], (0.6 + 0.4 * eback(min(1, qk))) * pul)
             cx = 540 + (k - 1) * 300; comp(fr, Ls, cx - Ls.shape[1] // 2, 955 + (TOKB[k].shape[0] - Ls.shape[0]) // 2, ease(qk))
-    F = fire(starts[B['slot']] + lt, 820, 260); comp(fr, F, 540 - F.shape[1] // 2, 480, ease(lt / 0.3))
+    F = flame_band(starts[B['slot']] + lt, SL_A.shape[1] - 30, 260); comp(fr, F, 540 - F.shape[1] // 2, 725 + 40 - F.shape[0], ease(lt / 0.3))
     comp(fr, SL_A, 540 - SL_A.shape[1] // 2, 725 + int(25 * (1 - ease(lt / 0.3))), ease(lt / 0.3))
     for j, Lc in enumerate(SL_C):
         q = ease((lt - 0.5 - 0.2 * j) / 0.3); comp(fr, Lc, 540 - Lc.shape[1] // 2, 1235 + 80 * j + int(25 * (1 - q)), q)
@@ -558,7 +567,7 @@ def fire(t, w, h):
 
 
 # ---------- хук v13: хинкали на общем фоне (без карточки), огонь из хвостика (Вал 23.11 19:37) ----------
-HK_KNOT = 1080; HK_PILL_Y = 945   # верх хвостика хинкали на экране; центр плашки «МЕСТ ВСЕГО 3»
+HK_KNOT = 1080; HK_PILL_Y = 965   # верх хвостика хинкали на экране; центр плашки «МЕСТ ВСЕГО 3»
 _HKB = {}
 def hook_bg(lt, L):
     if not _HKB:
@@ -616,7 +625,7 @@ def flame2(t, Wf=560, Hf=320):
     return out
 
 
-HK_FIRE = dict(w=480, h=240, base=990, tong=1.0)   # огонь сплошной полосой за плашкой «МЕСТ ВСЕГО 3» (Вал 23.11 20:29)
+HK_FIRE = dict(w=480, h=240, base=1010, tong=1.0)   # огонь сплошной полосой за плашкой «МЕСТ ВСЕГО 3» (Вал 23.11 20:29)
 def flame_band(t, Wf, Hf, tong=1.0):
     """Сплошная полоса огня: ровное основание по всей ширине, языки вверх, рисунок движется снизу вверх."""
     key = ('band', Wf, Hf)
@@ -723,7 +732,8 @@ def frame(fi):
         si, st, sl, (f, k2, z0, z1, fx, fy, dx, dy, cy) = shot_of(key, lt, L)
         fr = shot_img(k2, st / sl, z0, z1, fx, fy, dx, dy, cy)
         if st < 0.38: fr = trans(fr, st, (i * 3 + si) % 4, 1.0 if si == 0 else 0.7)
-        fr = brand_dark(fr, t); corner(fr, t)
+        fr = brand_dark(fr, t)
+        if not (key == 'sph' and si == 0): corner(fr, t)   # на кадре с вывеской DJIGIT угловой логотип не ставим (не налезает на вывеску)
         if key in CAPS: draw_caps(fr, mkcap(CAPS[key]), lt, L)
         return fr
     # текстовые сцены на размытом фоне
