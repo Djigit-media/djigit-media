@@ -125,19 +125,19 @@ CORNER = A(tpl.corner_layer().crop((0, 0, 460, 480)))
 HB = tpl.CORNER['horse']; HXY = (HB[0] - 12, HB[1] - 12, HB[2] + 13, HB[3] + 13)
 LOGO_IN = starts[1]
 SWEEPS = [LOGO_IN + 0.5 + 6 * k for k in range(40)]
-PY, PH_ = 110, 590
+PY, PH_ = 90, 545
 PLATE = A(brand.plate(990, PH_, 34))
 HT1 = A(tlayer('СУПЕР АКЦИЯ', 900, 92, gold=True, maxw=900))
 HT2 = A(tlayer('ДЛЯ ПЕРВЫХ 3 ФРАНЧАЙЗИ', 900, 56, gold=True, maxw=900))
 HT3a = A(tlayer('ФРАНШИЗА', 800, 40, fill=WHITE, maxw=900))
-HT3 = A(tlayer('DJIGIT', 900, 128, gold=True, maxw=900))
+HT3 = A(tlayer('DJIGIT', 900, 120, gold=True, maxw=900))
 def mixrow():
     a = tlayer('ФОРМАТ', 800, 36, fill=WHITE); b = tlayer('KHINKALI HOUSE', 900, 66, gold=True, maxw=760)
     Wd = a.width + b.width - 20; Hd = b.height; L = Image.new('RGBA', (Wd, Hd), (0, 0, 0, 0))
     L.alpha_composite(b, (a.width - 20, 0)); L.alpha_composite(a, (0, int(66 * 0.78 - 36 * 0.78) + 4)); return A(L)
 HT4 = mixrow()
 HT5 = A(tlayer('В ТВОЁМ ГОРОДЕ', 800, 36, fill=WHITE, maxw=900))
-TY = [PY + 14, PY + 120, PY + 196, PY + 240, PY + 418, PY + 510]
+TY = [PY + 10, PY + 110, PY + 180, PY + 222, PY + 388, PY + 472]
 HB_PILL = None
 yy_ = np.arange(H); grad = np.zeros((H, W, 1), np.float32)
 grad[:, :, 0] = np.maximum(np.clip((yy_ - 1050) / 600, 0, 1) ** 1.2 * 0.75, np.clip(1 - yy_ / 560, 0, 1) ** 1.5 * 0.45)[:, None]
@@ -272,7 +272,7 @@ def pill(w, h):
     p = Image.new('RGBA', (w, h), (0, 0, 0, 0)); ImageDraw.Draw(p).rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=(184, 146, 82, 255)); return A(p)
 TB_PILL = pill(880, 120)
 TB_PAYD = A(tlayer('ОКУПАЕМОСТЬ ДО 1 ГОДА', 900, 56, fill=(20, 15, 8, 255), maxw=820, shadow=0))
-HB_PILL = pill(600, 110); HB_T = A(tlayer('МЕСТ ВСЕГО 3', 900, 64, fill=(20, 15, 8, 255), maxw=560, shadow=0))
+HB_PILL = pill(480, 96); HB_T = A(tlayer('МЕСТ ВСЕГО 3', 900, 54, fill=(20, 15, 8, 255), maxw=440, shadow=0))
 SB_PILL = pill(820, 120)
 # ---------- хук v11: два формата, взнос и прибыль с первого кадра (Вал 23.11 17:43) ----------
 def old_price(t, sz=30):
@@ -283,7 +283,7 @@ def old_price(t, sz=30):
     brand.draw_text(L, int(15 + 20 + w0 + w1 / 2), 15, t, 700, sz, (200, 200, 200, 255))
     yy = 15 + int(sz * 0.58); dr.line((15 + 20 + w0 - 4, yy, 15 + 20 + w0 + w1 + 4, yy), fill=(220, 50, 40, 255), width=4)
     return A(L)
-HK_X = (45, 545); HK_Y = 716; HK_W, HK_H = 490, 222
+HK_X = (45, 545); HK_Y = 650; HK_W, HK_H = 490, 206
 HK_PL = A(brand.plate(HK_W, HK_H, 26))
 HK_ROWS = []
 for nm, old, prof in (('КИОСК', '7 000 €', 'от 3 000 €'), ('ФАСАДНОЕ', '9 000 €', 'от 10 000 €')):
@@ -298,7 +298,7 @@ def hook_chips(fr, lt, a):
         Lp = shimmer(prof, (lt - tp) / 1.2, 90) if hp else prof
         if hf: Lf = scaled(Lf, 1 + 0.08 * math.sin(min(1, (lt - HK_T['fee']) / 0.5) * math.pi))
         if hp: Lp = scaled(Lp, 1 + 0.05 * math.sin(min(1, (lt - tp) / 0.5) * math.pi))
-        for Lr, yy in ((nm, 4), (Lf, 54), (old, 104), (Lp, 146)):
+        for Lr, yy in ((nm, 0), (Lf, 48), (old, 96), (Lp, 136)):
             comp(fr, Lr, cx - Lr.shape[1] // 2, HK_Y + yy - (Lr.shape[0] - fee.shape[0]) // 2 * (Lr is Lf or Lr is Lp), a)
 def pop(fr, L, cx, cy, q, shim_t=None, big=1.6, out=1.0):
     if q <= 0: return
@@ -553,6 +553,66 @@ def fire(t, w, h):
     out = np.zeros((h, w, 4), np.float32); out[..., :3] = col; out[..., 3] = a * 255
     return out
 
+
+# ---------- хук v13: хинкали на общем фоне (без карточки), огонь из хвостика (Вал 23.11 19:37) ----------
+HK_KNOT = 1080; HK_PILL_Y = 925   # верх хвостика хинкали на экране; центр плашки «МЕСТ ВСЕГО 3»
+_HKB = {}
+def hook_bg(lt, L):
+    if not _HKB:
+        im = cv2.cvtColor(cv2.imread(os.path.join(ROOT, 'ph4/IMG_5796.jpeg')), cv2.COLOR_BGR2RGB).astype(np.float32)
+        crop = im[300:1340, 30:1050]          # без верхней надписи и без золотой рамки по краям
+        k = H / crop.shape[0]; bg = cv2.resize(crop, (int(crop.shape[1] * k), H)); x = (bg.shape[1] - W) // 2
+        bg = cv2.GaussianBlur(bg[:, x:x + W], (0, 0), 38) * 0.42
+        g = np.linspace(0.75, 1.0, H)[:, None, None]; _HKB['bg'] = bg * g
+        h, w = crop.shape[:2]; m = np.ones((h, w), np.float32); f = 130
+        ramp = lambda n: np.clip(np.arange(n) / f, 0, 1)
+        m *= np.minimum(ramp(w), ramp(w)[::-1])[None, :]; m *= np.minimum(ramp(h), ramp(h)[::-1])[:, None]
+        m = cv2.GaussianBlur(m, (0, 0), 25) ** 1.4
+        _HKB['fg'] = np.dstack([crop, m * 255])
+        # силуэт хинкали поверх огня (огонь горит изнутри: виден в отверстии хвостика и над ним)
+        hsv = cv2.cvtColor(crop.astype(np.uint8), cv2.COLOR_RGB2HSV); hh_, ss_, vv_ = cv2.split(hsv)
+        red = (((hh_ < 12) | (hh_ > 165)) & (ss_ > 110) & (vv_ > 70)).astype(np.uint8)
+        red = cv2.morphologyEx(red, cv2.MORPH_CLOSE, np.ones((25, 25), np.uint8))
+        n_, lab, st_, _ = cv2.connectedComponentsWithStats(red); kk = 1 + np.argmax(st_[1:, 4]); km = (lab == kk).astype(np.uint8)
+        ff = km.copy(); fm = np.zeros((km.shape[0] + 2, km.shape[1] + 2), np.uint8); cv2.floodFill(ff, fm, (0, 0), 1); km = km | (1 - ff)
+        cv2.ellipse(km, (545, 118), (92, 30), 0, 0, 360, 0, -1)      # отверстие хвостика: там виден огонь
+        km = cv2.GaussianBlur(km.astype(np.float32), (0, 0), 2.5); km[620:] = 0   # нижняя часть не нужна (огня там нет)
+        _HKB['ov'] = np.dstack([crop, km * 255])
+    fr = _HKB['bg'].copy(); S = 0.80 + 0.04 * eio(min(lt / L, 1))
+    fg = _HKB['fg']; L2 = cv2.resize(fg, (int(fg.shape[1] * S), int(fg.shape[0] * S)), interpolation=cv2.INTER_AREA)
+    comp(fr, L2, 540 - 510 * S, HK_KNOT - 70 * S)
+    return fr
+def hook_over(fr, lt, L):
+    S = 0.80 + 0.04 * eio(min(lt / L, 1)); ov = _HKB['ov']
+    L2 = cv2.resize(ov, (int(ov.shape[1] * S), int(ov.shape[0] * S)), interpolation=cv2.INTER_AREA)
+    comp(fr, L2, 540 - 510 * S, HK_KNOT - 70 * S)
+    return 540 + 35 * S, HK_KNOT + 62 * S      # центр отверстия хвостика на экране (x, низ огня)
+_FN = {}
+def flame2(t, Wf=560, Hf=320):
+    """Один язык пламени из хвостика: узкий у основания, шире к середине, рваный верх, движется вверх."""
+    if not _FN:
+        rng = np.random.default_rng(11)
+        a = cv2.GaussianBlur(rng.random((Hf * 6, Wf)).astype(np.float32), (0, 0), sigmaX=9, sigmaY=22)
+        b = cv2.GaussianBlur(rng.random((Hf * 6, Wf)).astype(np.float32), (0, 0), sigmaX=5, sigmaY=12)
+        _FN['a'] = (a - a.mean()) / a.std(); _FN['b'] = (b - b.mean()) / b.std()
+        _FN['yy'] = np.linspace(1, 0, Hf)[:, None].astype(np.float32); _FN['xx'] = np.linspace(-1, 1, Wf)[None, :].astype(np.float32)
+    a, b, yy, xx = _FN['a'], _FN['b'], _FN['yy'], _FN['xx']; N = Hf * 5
+    o1 = int(t * 170) % N; o2 = int(t * 330) % N
+    n1 = a[N - o1:N - o1 + Hf] if o1 else a[N:N + Hf]; n2 = b[N - o2:N - o2 + Hf] if o2 else b[N:N + Hf]
+    sway = 0.10 * yy * np.sin(t * 5.3 + yy * 6.0) + 0.16 * yy * n1[:, Wf // 2:Wf // 2 + 1]
+    wp = np.where(yy < 0.68, 0.22 + 0.78 * np.sin(np.clip(yy / 0.68, 0, 1) * np.pi / 2) ** 1.6, np.clip(1 - (yy - 0.68) / 0.32, 0, 1) ** 0.8)
+    shape = np.clip(1 - (np.abs(xx - sway) / (wp + 1e-3)) ** 2, 0, 1)
+    tong = np.clip(0.5 + 0.5 * np.sin(xx * 9.0 + n1 * 1.6 + t * 2.0), 0, 1)
+    I = shape * (0.95 - 0.55 * yy) * (0.65 + 0.35 * tong) + 0.18 * n2 * shape - np.clip(yy - 0.3, 0, 1) * (0.7 + 0.5 * n1) * (1.1 - tong * 0.4)
+    I = np.clip(I, 0, 1) * np.clip(yy / 0.06, 0, 1) ** 0.5
+    stops = np.array([0, 0.2, 0.45, 0.7, 0.9, 1.0]); cols = np.array([[110, 8, 0], [190, 30, 0], [250, 90, 8], [255, 160, 30], [255, 215, 110], [255, 240, 190]], np.float32)
+    rgb = np.stack([np.interp(I, stops, cols[:, c]) for c in range(3)], -1)
+    al = np.clip((I - 0.06) * 2.4, 0, 1)
+    glow = cv2.GaussianBlur(I, (0, 0), 18) * 0.4
+    A_ = np.maximum(al, glow * 0.6); rgb = rgb * (al / np.maximum(A_, 1e-3))[..., None] + np.array([255, 120, 20], np.float32) * (1 - al / np.maximum(A_, 1e-3))[..., None]
+    out = np.zeros((Hf, Wf, 4), np.float32); out[..., :3] = rgb; out[..., 3] = A_ * 255
+    return out
+
 # ---------- сладкая линейка: сетка 2х2, подсвечивается то, что называет голос ----------
 GRID_K = ['straw', 'cherry', 'blue', 'rasp']; GRID_N = ['КЛУБНИКА', 'ВИШНЯ', 'ЧЕРНИКА', 'МАЛИНА']
 GRID_T = [1.18, 1.94, 2.64, 3.46]   # по словам в голосе (whisper)
@@ -614,15 +674,16 @@ def frame(fi):
     if key == 'end': return None
     L = BL(i)
     if key == 'hook':
-        fr = card_frame('hook', lt / L, 0.9, 0.95, cy=1562)
+        fr = hook_bg(lt, L)
         a = 1.0 if lt < L - 0.25 else 1 - ease((lt - (L - 0.25)) / 0.25)
         comp(fr, PLATE, 45, PY, a)
         spp = min(max((lt - 0.6) / 1.1, 0), 1)
         for Lr, yy in ((HT1, TY[0]), (HT2, TY[1]), (HT3, TY[3]), (HT4, TY[4])):
             comp(fr, shimmer(Lr, spp) if 0 < spp < 1 else Lr, 540 - Lr.shape[1] // 2, yy, a)
         comp(fr, HT3a, 540 - HT3a.shape[1] // 2, TY[2], a); comp(fr, HT5, 540 - HT5.shape[1] // 2, TY[5], a)
-        bp = 1 + 0.03 * math.sin(lt * 2 * math.pi / 1.1); BY = 1000
-        F = fire(t, 760, 300); comp(fr, F, 540 - F.shape[1] // 2, 885, a)
+        bp = 1 + 0.03 * math.sin(lt * 2 * math.pi / 1.1); BY = HK_PILL_Y
+        F = flame2(t); S_ = 0.80 + 0.04 * eio(min(lt / L, 1)); fx_, fy_ = 540 + 35 * S_, HK_KNOT + 62 * S_
+        comp(fr, F, fx_ - F.shape[1] // 2, fy_ - F.shape[0], a); hook_over(fr, lt, L)
         hook_chips(fr, lt, a)
         Pb = scaled(HB_PILL, bp); Tb = scaled(HB_T, bp)
         comp(fr, Pb, 540 - Pb.shape[1] // 2, BY - Pb.shape[0] // 2, a)

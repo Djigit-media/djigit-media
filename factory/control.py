@@ -55,8 +55,12 @@ if __name__ == '__main__':
     m = WhisperModel('small', device='cpu', compute_type='int8'); bad = []
     for (k, text), st, d in zip(b.BEATS, tl['starts'], tl['durs']):
         x = audio(a.video, max(0, st - 0.05), d + 0.25)
-        segs, _ = m.transcribe(x, language='ru', initial_prompt=text); heard = ' '.join(s.text for s in segs)
-        miss = word_check(norm(text), norm(heard))
+        miss = None
+        for kw in ({'initial_prompt': text}, {}):     # подсказка иногда вызывает галлюцинацию Whisper: тогда второй проход без неё
+            segs, _ = m.transcribe(x, language='ru', **kw); heard = ' '.join(s.text for s in segs)
+            mm = word_check(norm(text), norm(heard))
+            if miss is None or len(mm) < len(miss): miss = mm
+            if not miss: break
         if miss: bad.append(f'{k}: нет слов {miss} | слышно: {heard.strip()}')
     res.append(('ГОЛОС', not bad, '; '.join(bad) or 'все слова на месте'))
     # 3 ударения
