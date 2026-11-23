@@ -43,7 +43,7 @@ SRC = {
  'sphere': ('ph/n2.png', None), 'sphere2': ('ph2/IMG_3678.jpeg', None), 'don': ('ph3/doner.png', None),
  'khach': ('ph/p5_fix.png', None), 'queue': ('ph/p4.png', None), 'film': ('ph/p10_fix.png', None),
  'courier': ('ph/p3.png', None), 'frozen': ('ph/p2.png', None), 'hand': ('ph/p7.png', None), 'board': ('ph2/IMG_2959.jpeg', None), 'kiosk2': ('ph4/62272163.png', None), 'terrace': ('ph4/3890A620.png', None),
- 'ice': ('ph4/IMG_3353.png', None), 'freezer': ('ph4/FE83307F.png', None), 'girls': ('ph4/5DF26AA2.png', None), 'chef': ('ph4/F6703FE5.png', None),
+ 'ice': ('ph4/IMG_3353.png', (480, 240, 1060, 700)), 'freezer': ('ph4/FE83307F.png', None), 'girls': ('ph4/5DF26AA2.png', None), 'chef': ('ph4/F6703FE5.png', None),
  # только размытым фоном под текстовыми сценами (тёплая серия)
  'b_n1': ('ph/n1.png', None), 'b_p5': ('ph/p5.png', None), 'b_p10': ('ph/p10.png', None), 'b_p6': ('ph/p6.png', None),
 }
@@ -175,7 +175,7 @@ SHOTS = {
  'sph': [SH(0, 'sphere', 1.12, 1.2, .5, .8), SH(.5, 'sphere2', 1.07, 1.0)],
  'don': [SH(0, 'don', 1.0, 1.08)],
  'kha': [SH(0, 'khach', .96, 1.04, .5, .66, 0, -.04)],
- 'ice': [SH(0, 'ice', 1.05, 1.0)],
+ 'ice': [SH(0, 'ice', 1.0, 1.08, .5, .55, cy=925)],
  'g1': [SH(0, 'film', .95, 1.04, .45, .5)],
  'g2': [SH(0, 'freezer', 1.0, 1.05)],
  'g3': [SH(0, 'girls', 1.0, 1.08)],
@@ -272,7 +272,10 @@ def pill(w, h):
     p = Image.new('RGBA', (w, h), (0, 0, 0, 0)); ImageDraw.Draw(p).rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=(184, 146, 82, 255)); return A(p)
 TB_PILL = pill(880, 120)
 TB_PAYD = A(tlayer('ОКУПАЕМОСТЬ ДО 1 ГОДА', 900, 56, fill=(20, 15, 8, 255), maxw=820, shadow=0))
-HB_PILL = pill(480, 96); HB_T = A(tlayer('МЕСТ ВСЕГО 3', 900, 54, fill=(20, 15, 8, 255), maxw=440, shadow=0))
+
+def rpill(w, h, r):
+    p = Image.new('RGBA', (w, h), (0, 0, 0, 0)); ImageDraw.Draw(p).rounded_rectangle((0, 0, w - 1, h - 1), r, fill=(184, 146, 82, 255)); return A(p)
+HB_PILL = rpill(480, 96, 22); HB_T = A(tlayer('МЕСТ ВСЕГО 3', 900, 54, fill=(20, 15, 8, 255), maxw=440, shadow=0))
 SB_PILL = pill(820, 120)
 # ---------- хук v11: два формата, взнос и прибыль с первого кадра (Вал 23.11 17:43) ----------
 def old_price(t, sz=30):
@@ -555,7 +558,7 @@ def fire(t, w, h):
 
 
 # ---------- хук v13: хинкали на общем фоне (без карточки), огонь из хвостика (Вал 23.11 19:37) ----------
-HK_KNOT = 1080; HK_PILL_Y = 925   # верх хвостика хинкали на экране; центр плашки «МЕСТ ВСЕГО 3»
+HK_KNOT = 1080; HK_PILL_Y = 945   # верх хвостика хинкали на экране; центр плашки «МЕСТ ВСЕГО 3»
 _HKB = {}
 def hook_bg(lt, L):
     if not _HKB:
@@ -575,7 +578,6 @@ def hook_bg(lt, L):
         red = cv2.morphologyEx(red, cv2.MORPH_CLOSE, np.ones((25, 25), np.uint8))
         n_, lab, st_, _ = cv2.connectedComponentsWithStats(red); kk = 1 + np.argmax(st_[1:, 4]); km = (lab == kk).astype(np.uint8)
         ff = km.copy(); fm = np.zeros((km.shape[0] + 2, km.shape[1] + 2), np.uint8); cv2.floodFill(ff, fm, (0, 0), 1); km = km | (1 - ff)
-        cv2.ellipse(km, (545, 118), (92, 30), 0, 0, 360, 0, -1)      # отверстие хвостика: там виден огонь
         km = cv2.GaussianBlur(km.astype(np.float32), (0, 0), 2.5); km[620:] = 0   # нижняя часть не нужна (огня там нет)
         _HKB['ov'] = np.dstack([crop, km * 255])
     fr = _HKB['bg'].copy(); S = 0.80 + 0.04 * eio(min(lt / L, 1))
@@ -598,8 +600,8 @@ def flame2(t, Wf=560, Hf=320):
         _FN['yy'] = np.linspace(1, 0, Hf)[:, None].astype(np.float32); _FN['xx'] = np.linspace(-1, 1, Wf)[None, :].astype(np.float32)
     a, b, yy, xx = _FN['a'], _FN['b'], _FN['yy'], _FN['xx']; N = Hf * 5
     o1 = int(t * 170) % N; o2 = int(t * 330) % N
-    n1 = a[N - o1:N - o1 + Hf] if o1 else a[N:N + Hf]; n2 = b[N - o2:N - o2 + Hf] if o2 else b[N:N + Hf]
-    sway = 0.10 * yy * np.sin(t * 5.3 + yy * 6.0) + 0.16 * yy * n1[:, Wf // 2:Wf // 2 + 1]
+    n1 = a[o1:o1 + Hf]; n2 = b[o2:o2 + Hf]   # окно сдвигается вниз по текстуре => рисунок пламени идёт ВВЕРХ
+    sway = 0.04 * yy * np.sin(t * 4.0 + yy * 5.0) + 0.06 * yy * n1[:, Wf // 2:Wf // 2 + 1]
     wp = np.where(yy < 0.68, 0.22 + 0.78 * np.sin(np.clip(yy / 0.68, 0, 1) * np.pi / 2) ** 1.6, np.clip(1 - (yy - 0.68) / 0.32, 0, 1) ** 0.8)
     shape = np.clip(1 - (np.abs(xx - sway) / (wp + 1e-3)) ** 2, 0, 1)
     tong = np.clip(0.5 + 0.5 * np.sin(xx * 9.0 + n1 * 1.6 + t * 2.0), 0, 1)
@@ -610,6 +612,34 @@ def flame2(t, Wf=560, Hf=320):
     al = np.clip((I - 0.06) * 2.4, 0, 1)
     glow = cv2.GaussianBlur(I, (0, 0), 18) * 0.4
     A_ = np.maximum(al, glow * 0.6); rgb = rgb * (al / np.maximum(A_, 1e-3))[..., None] + np.array([255, 120, 20], np.float32) * (1 - al / np.maximum(A_, 1e-3))[..., None]
+    out = np.zeros((Hf, Wf, 4), np.float32); out[..., :3] = rgb; out[..., 3] = A_ * 255
+    return out
+
+
+HK_FIRE = dict(w=480, h=240, base=990, tong=1.0)   # огонь сплошной полосой за плашкой «МЕСТ ВСЕГО 3» (Вал 23.11 20:29)
+def flame_band(t, Wf, Hf, tong=1.0):
+    """Сплошная полоса огня: ровное основание по всей ширине, языки вверх, рисунок движется снизу вверх."""
+    key = ('band', Wf, Hf)
+    if key not in _FN:
+        rng = np.random.default_rng(5)
+        a = cv2.GaussianBlur(rng.random((Hf * 6, Wf)).astype(np.float32), (0, 0), sigmaX=10, sigmaY=24)
+        b = cv2.GaussianBlur(rng.random((Hf * 6, Wf)).astype(np.float32), (0, 0), sigmaX=5, sigmaY=12)
+        _FN[key] = ((a - a.mean()) / a.std(), (b - b.mean()) / b.std(), np.linspace(1, 0, Hf)[:, None].astype(np.float32), np.linspace(-1, 1, Wf)[None, :].astype(np.float32))
+    a, b, yy, xx = _FN[key]; N = Hf * 5
+    o1 = int(t * 200) % N; o2 = int(t * 380) % N
+    n1 = a[o1:o1 + Hf]; n2 = b[o2:o2 + Hf]                      # окно вниз по текстуре => рисунок вверх
+    side = np.clip((1 - np.abs(xx)) / 0.10, 0, 1) ** 0.7        # мягкие края по ширине
+    tongues = 0.5 + 0.5 * np.sin(xx * 11.0 + n1 * 1.4 + t * 1.5)
+    I = (1.0 - 0.95 * yy) * (0.75 + 0.25 * tongues) + 0.2 * n2 - np.clip(yy - 0.25, 0, 1) * (0.9 + 0.6 * n1) * (1.15 - 0.5 * tongues) * tong
+    I = np.clip(I, 0, 1) * side * np.clip(yy / 0.10, 0, 1) ** 0.8
+    stops = np.array([0, 0.2, 0.45, 0.7, 0.9, 1.0]); cols = np.array([[110, 8, 0], [190, 30, 0], [250, 90, 8], [255, 160, 30], [255, 215, 110], [255, 240, 190]], np.float32)
+    rgb = np.stack([np.interp(I, stops, cols[:, c]) for c in range(3)], -1)
+    al = np.clip((I - 0.06) * 2.4, 0, 1); glow = cv2.GaussianBlur(I, (0, 0), 18) * 0.4
+    A_ = np.maximum(al, glow * 0.6); k_ = (al / np.maximum(A_, 1e-3))[..., None]
+    rgb = rgb * k_ + np.array([255, 120, 20], np.float32) * (1 - k_)
+    ey = np.clip(np.minimum(np.arange(Hf), Hf - 1 - np.arange(Hf)) / 40, 0, 1)[:, None]
+    ex = np.clip(np.minimum(np.arange(Wf), Wf - 1 - np.arange(Wf)) / 12, 0, 1)[None, :]
+    A_ = A_ * np.minimum(ex, np.maximum(ey, (yy < 0.5)))        # без видимых краёв прямоугольника (низ уже мягкий)
     out = np.zeros((Hf, Wf, 4), np.float32); out[..., :3] = rgb; out[..., 3] = A_ * 255
     return out
 
@@ -682,8 +712,7 @@ def frame(fi):
             comp(fr, shimmer(Lr, spp) if 0 < spp < 1 else Lr, 540 - Lr.shape[1] // 2, yy, a)
         comp(fr, HT3a, 540 - HT3a.shape[1] // 2, TY[2], a); comp(fr, HT5, 540 - HT5.shape[1] // 2, TY[5], a)
         bp = 1 + 0.03 * math.sin(lt * 2 * math.pi / 1.1); BY = HK_PILL_Y
-        F = flame2(t); S_ = 0.80 + 0.04 * eio(min(lt / L, 1)); fx_, fy_ = 540 + 35 * S_, HK_KNOT + 62 * S_
-        comp(fr, F, fx_ - F.shape[1] // 2, fy_ - F.shape[0], a); hook_over(fr, lt, L)
+        F = flame_band(t, HK_FIRE['w'], HK_FIRE['h'], HK_FIRE['tong']); comp(fr, F, 540 - F.shape[1] // 2, HK_FIRE['base'] - F.shape[0], a)
         hook_chips(fr, lt, a)
         Pb = scaled(HB_PILL, bp); Tb = scaled(HB_T, bp)
         comp(fr, Pb, 540 - Pb.shape[1] // 2, BY - Pb.shape[0] // 2, a)
@@ -715,6 +744,13 @@ def end_bg(last): return A(Image.fromarray(np.clip(last, 0, 255).astype(np.uint8
 
 if __name__ == '__main__':
     NF = int(math.ceil(TOTAL * FPS)); EF = int(math.ceil(END_START * FPS))
+    if len(sys.argv) > 1 and sys.argv[1].startswith('clip:'):     # превью куска ролика со звуком: clip:0,6
+        a_, b_ = [float(x) for x in sys.argv[1][5:].split(',')]; op = os.path.join(ROOT, 'prev', 'clip.mp4'); os.makedirs(os.path.dirname(op), exist_ok=True)
+        enc = subprocess.Popen(['ffmpeg', '-v', 'error', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
+                                '-ss', str(a_), '-t', str(b_ - a_), '-i', os.path.join(ROOT, 'audio_v10.m4a'), '-map', '0:v', '-map', '1:a', '-c:v', 'libx264',
+                                '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', '-movflags', '+faststart', op], stdin=subprocess.PIPE)
+        for fi in range(int(a_ * FPS), int(b_ * FPS)): enc.stdin.write(np.clip(frame(fi), 0, 255).astype(np.uint8).tobytes())
+        enc.stdin.close(); enc.wait(); print('clip', op); sys.exit()
     if len(sys.argv) > 1 and sys.argv[1].startswith('frames:'):
         os.makedirs(os.path.join(ROOT, 'prev'), exist_ok=True)
         for x in sys.argv[1][7:].split(','):
