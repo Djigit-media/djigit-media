@@ -47,6 +47,11 @@ if __name__ == '__main__':
     j = probe(a.video); v = [s for s in j['streams'] if s['codec_name'] == 'h264'][0]
     ok = v['width'] == 1080 and v['height'] == 1920 and v['r_frame_rate'] == '30/1'
     R += [f"## Техника: {'OK' if ok else 'ОШИБКА'} {v['width']}x{v['height']} {v['r_frame_rate']} {float(j['format']['duration']):.1f}s {int(j['format']['size'])/1e6:.0f} МБ", '']
+    raw = subprocess.run(['ffmpeg', '-v', 'error', '-i', a.video, '-vn', '-ac', '1', '-ar', '16000', '-f', 'f32le', '-'], capture_output=True).stdout
+    au = np.frombuffer(raw, np.float32); w5 = 16000 * 2
+    lv = [20 * np.log10(np.sqrt(np.mean(au[i:i + w5] ** 2)) + 1e-9) for i in range(0, len(au) - w5, w5)]
+    quiet = [f'{i*2}-{i*2+2}s' for i, l in enumerate(lv) if l < -38]
+    R += [f"## Звук по всему ролику (окна 2 с): {'OK, тишины нет' if not quiet else 'ДЫРЫ: ' + ', '.join(quiet)}; мин {min(lv):.1f} dB", '']
     if a.beats and a.vo:
         sp = importlib.util.spec_from_file_location('b', a.beats); b = importlib.util.module_from_spec(sp); sp.loader.exec_module(b)
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from stress_ru import check

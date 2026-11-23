@@ -125,19 +125,19 @@ CORNER = A(tpl.corner_layer().crop((0, 0, 460, 480)))
 HB = tpl.CORNER['horse']; HXY = (HB[0] - 12, HB[1] - 12, HB[2] + 13, HB[3] + 13)
 LOGO_IN = starts[1]
 SWEEPS = [LOGO_IN + 0.5 + 6 * k for k in range(40)]
-PY, PH_ = 170, 700
+PY, PH_ = 110, 590
 PLATE = A(brand.plate(990, PH_, 34))
-HT1 = A(tlayer('СУПЕР АКЦИЯ', 900, 104, gold=True, maxw=900))
-HT2 = A(tlayer('ДЛЯ ПЕРВЫХ 3 ФРАНЧАЙЗИ', 900, 62, gold=True, maxw=900))
-HT3a = A(tlayer('ФРАНШИЗА', 800, 46, fill=WHITE, maxw=900))
-HT3 = A(tlayer('DJIGIT', 900, 150, gold=True, maxw=900))
+HT1 = A(tlayer('СУПЕР АКЦИЯ', 900, 92, gold=True, maxw=900))
+HT2 = A(tlayer('ДЛЯ ПЕРВЫХ 3 ФРАНЧАЙЗИ', 900, 56, gold=True, maxw=900))
+HT3a = A(tlayer('ФРАНШИЗА', 800, 40, fill=WHITE, maxw=900))
+HT3 = A(tlayer('DJIGIT', 900, 128, gold=True, maxw=900))
 def mixrow():
-    a = tlayer('ФОРМАТ', 800, 40, fill=WHITE); b = tlayer('KHINKALI HOUSE', 900, 74, gold=True, maxw=760)
+    a = tlayer('ФОРМАТ', 800, 36, fill=WHITE); b = tlayer('KHINKALI HOUSE', 900, 66, gold=True, maxw=760)
     Wd = a.width + b.width - 20; Hd = b.height; L = Image.new('RGBA', (Wd, Hd), (0, 0, 0, 0))
-    L.alpha_composite(b, (a.width - 20, 0)); L.alpha_composite(a, (0, int(74 * 0.78 - 40 * 0.78) + 4)); return A(L)
+    L.alpha_composite(b, (a.width - 20, 0)); L.alpha_composite(a, (0, int(66 * 0.78 - 36 * 0.78) + 4)); return A(L)
 HT4 = mixrow()
-HT5 = A(tlayer('В ТВОЁМ ГОРОДЕ', 800, 40, fill=WHITE, maxw=900))
-TY = [PY + 18, PY + 140, PY + 232, PY + 290, PY + 492, PY + 600]
+HT5 = A(tlayer('В ТВОЁМ ГОРОДЕ', 800, 36, fill=WHITE, maxw=900))
+TY = [PY + 14, PY + 120, PY + 196, PY + 240, PY + 418, PY + 510]
 HB_PILL = None
 yy_ = np.arange(H); grad = np.zeros((H, W, 1), np.float32)
 grad[:, :, 0] = np.maximum(np.clip((yy_ - 1050) / 600, 0, 1) ** 1.2 * 0.75, np.clip(1 - yy_ / 560, 0, 1) ** 1.5 * 0.45)[:, None]
@@ -274,6 +274,32 @@ TB_PILL = pill(880, 120)
 TB_PAYD = A(tlayer('ОКУПАЕМОСТЬ ДО 1 ГОДА', 900, 56, fill=(20, 15, 8, 255), maxw=820, shadow=0))
 HB_PILL = pill(600, 110); HB_T = A(tlayer('МЕСТ ВСЕГО 3', 900, 64, fill=(20, 15, 8, 255), maxw=560, shadow=0))
 SB_PILL = pill(820, 120)
+# ---------- хук v11: два формата, взнос и прибыль с первого кадра (Вал 23.11 17:43) ----------
+def old_price(t, sz=30):
+    w0 = brand.width('вместо', 700, sz) + 16; w1 = brand.width(t, 700, sz); tw = int(w0 + w1) + 40
+    L = Image.new('RGBA', (tw + 30, int(sz * 1.5) + 30), (0, 0, 0, 0)); dr = ImageDraw.Draw(L)
+    x0 = 15 + 20 + (w0 + w1) / 2
+    brand.draw_text(L, int(15 + 20 + (w0 - 16) / 2), 15, 'вместо', 700, sz, (225, 225, 225, 255))
+    brand.draw_text(L, int(15 + 20 + w0 + w1 / 2), 15, t, 700, sz, (200, 200, 200, 255))
+    yy = 15 + int(sz * 0.58); dr.line((15 + 20 + w0 - 4, yy, 15 + 20 + w0 + w1 + 4, yy), fill=(220, 50, 40, 255), width=4)
+    return A(L)
+HK_X = (45, 545); HK_Y = 716; HK_W, HK_H = 490, 222
+HK_PL = A(brand.plate(HK_W, HK_H, 26))
+HK_ROWS = []
+for nm, old, prof in (('КИОСК', '7 000 €', 'от 3 000 €'), ('ФАСАДНОЕ', '9 000 €', 'от 10 000 €')):
+    HK_ROWS.append((A(tlayer(nm, 900, 40, gold=True, maxw=440)), A(tlayer('ВЗНОС 5 000 €', 900, 40, fill=WHITE, maxw=440)),
+                    old_price(old, 27), A(tlayer('ПРИБЫЛЬ ' + prof.upper() + '/МЕС', 900, 28, gold=True, maxw=450))))
+HK_T = {'fee': 7.8, 'prof': (12.3, 14.0)}   # whisper по vo10/00_hook.wav: «взнос» 7.82, «киоск» 12.28, «фасадное» 14.02
+def hook_chips(fr, lt, a):
+    for j, x in enumerate(HK_X):
+        comp(fr, HK_PL, x, HK_Y, a); cx = x + HK_W // 2; nm, fee, old, prof = HK_ROWS[j]
+        tp = HK_T['prof'][j]; hf = 0 <= lt - HK_T['fee'] < 1.4; hp = 0 <= lt - tp < 1.4
+        Lf = shimmer(fee, (lt - HK_T['fee']) / 1.2, 90) if hf else fee
+        Lp = shimmer(prof, (lt - tp) / 1.2, 90) if hp else prof
+        if hf: Lf = scaled(Lf, 1 + 0.08 * math.sin(min(1, (lt - HK_T['fee']) / 0.5) * math.pi))
+        if hp: Lp = scaled(Lp, 1 + 0.05 * math.sin(min(1, (lt - tp) / 0.5) * math.pi))
+        for Lr, yy in ((nm, 4), (Lf, 54), (old, 104), (Lp, 146)):
+            comp(fr, Lr, cx - Lr.shape[1] // 2, HK_Y + yy - (Lr.shape[0] - fee.shape[0]) // 2 * (Lr is Lf or Lr is Lp), a)
 def pop(fr, L, cx, cy, q, shim_t=None, big=1.6, out=1.0):
     if q <= 0: return
     sc = big - (big - 1) * eback(min(1, q), 2.2); Ln = scaled(L, sc)
@@ -588,15 +614,16 @@ def frame(fi):
     if key == 'end': return None
     L = BL(i)
     if key == 'hook':
-        fr = card_frame('hook', lt / L, 1.0, 1.07, cy=1420)
+        fr = card_frame('hook', lt / L, 0.9, 0.95, cy=1562)
         a = 1.0 if lt < L - 0.25 else 1 - ease((lt - (L - 0.25)) / 0.25)
         comp(fr, PLATE, 45, PY, a)
         spp = min(max((lt - 0.6) / 1.1, 0), 1)
         for Lr, yy in ((HT1, TY[0]), (HT2, TY[1]), (HT3, TY[3]), (HT4, TY[4])):
             comp(fr, shimmer(Lr, spp) if 0 < spp < 1 else Lr, 540 - Lr.shape[1] // 2, yy, a)
         comp(fr, HT3a, 540 - HT3a.shape[1] // 2, TY[2], a); comp(fr, HT5, 540 - HT5.shape[1] // 2, TY[5], a)
-        bp = 1 + 0.03 * math.sin(lt * 2 * math.pi / 1.1); BY = 1110
-        F = fire(t, 760, 300); comp(fr, F, 540 - F.shape[1] // 2, BY - 255, a)
+        bp = 1 + 0.03 * math.sin(lt * 2 * math.pi / 1.1); BY = 1000
+        F = fire(t, 760, 300); comp(fr, F, 540 - F.shape[1] // 2, 885, a)
+        hook_chips(fr, lt, a)
         Pb = scaled(HB_PILL, bp); Tb = scaled(HB_T, bp)
         comp(fr, Pb, 540 - Pb.shape[1] // 2, BY - Pb.shape[0] // 2, a)
         comp(fr, Tb, 540 - Tb.shape[1] // 2, BY - Tb.shape[0] // 2 - 4, a)
