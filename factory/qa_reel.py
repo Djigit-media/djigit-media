@@ -1,3 +1,4 @@
+import sys
 # Автопроверка рилса DJIGIT перед показом Валу. Запуск:
 #   python3 qa_reel.py --video V.mp4 --beats beats.py --vo VO_DIR --photos p1.png p2.jpg ... --out QA_DIR
 # Выдаёт отчёт qa.md и лист кадров sheet.jpg (смотреть ГЛАЗАМИ весь лист, это обязательный шаг).
@@ -48,6 +49,15 @@ if __name__ == '__main__':
     R += [f"## Техника: {'OK' if ok else 'ОШИБКА'} {v['width']}x{v['height']} {v['r_frame_rate']} {float(j['format']['duration']):.1f}s {int(j['format']['size'])/1e6:.0f} МБ", '']
     if a.beats and a.vo:
         sp = importlib.util.spec_from_file_location('b', a.beats); b = importlib.util.module_from_spec(sp); sp.loader.exec_module(b)
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from stress_ru import check
+        bad = [f'- !! {k}: {x}' for k, t in b.BEATS for x in check(t)]
+        R += ['## Ударения: ' + ('ОШИБКИ, переписать фразы' if bad else 'знаков и опасных слов нет'), *bad, '']
+        try:
+            from phon import load, phon
+            R += ['## Фонемы по битам (ударная гласная полная: о/а/е; безударная о -> а/ə). Проверить ключевые слова глазами']
+            for i, (k, t) in enumerate(b.BEATS): R.append(f'- {k}: {phon(load(os.path.join(a.vo, f"{i:02d}_{k}.wav")))}')
+            R.append('')
+        except Exception as e: R += [f'## Фонемы: не посчитаны ({e!r})', '']
         R += ['## Голос против сценария (ниже 0.80 = переслушать и переделать)']
         for k, r, t, h in voice_check(b.BEATS, a.vo): R.append(f"- {'!! ' if r < .8 else ''}{k}: {r} | слышно: {h.strip()}")
         R.append('')

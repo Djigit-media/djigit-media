@@ -3,7 +3,7 @@
 import sys, os, json, math, subprocess, numpy as np, cv2
 sys.path.insert(0, '/home/claude/work/prev'); sys.path.insert(0, '/home/claude/work/tpl'); sys.path.insert(0, os.path.dirname(__file__))
 import brand, tpl
-from beats9 import BEATS
+from beats10 import BEATS
 from PIL import Image, ImageDraw, ImageFilter
 W, H, FPS = 1080, 1920, 30
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE); OLD = os.path.join(ROOT, '..', '2026-11-22_kh_sell')
@@ -36,7 +36,7 @@ WHITE = (255, 255, 255, 255)
 
 # ---------- фото ----------
 SRC = {
- 'hook': ('ph2/IMG_3694.jpeg', None), 'p1': ('ph/p1.png', None), 'straw': ('ph2/IMG_3685.jpeg', None),
+ 'hook': ('ph4/IMG_5796.jpeg', (0, 330, 1080, 1350)), 'p1': ('ph/p1.png', None), 'straw': ('ph2/IMG_3685.jpeg', None),
  'kiosk': ('ph3/kiosk_eve.png', None), 'facade': ('ph3/facade_eve.png', None), 'phone': ('ph2/IMG_3259.jpeg', None),
  'black': ('ph2/IMG_3688.jpeg', None), 'green': ('ph2/IMG_3690.jpeg', None), 'classic': ('ph2/IMG_3691.jpeg', None),
  'cherry': ('ph2/IMG_3693.jpeg', None), 'blue': ('ph2/IMG_3684.jpeg', None), 'rasp': ('ph2/IMG_3692.jpeg', None),
@@ -106,7 +106,7 @@ def shot_img(key, p, z0, z1, fx, fy, dx, dy, cy=900):
     return card_frame(key, p, z0, z1, cy, dy * 300)
 
 # ---------- таймлайн по голосу ----------
-VO = os.path.join(ROOT, 'vo9')
+VO = os.path.join(ROOT, 'vo10')
 KEYS = [k for k, _ in BEATS]
 def dur(f): return float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f], capture_output=True, text=True).stdout)
 durs = [dur(f'{VO}/{i:02d}_{k}.wav') for i, k in enumerate(KEYS)]
@@ -117,7 +117,7 @@ for k_, d in zip(KEYS, durs): starts.append(t); t += max(d + GAP, MINL.get(k_, 2
 B = {k: i for i, k in enumerate(KEYS)}
 END_START = starts[B['end']]
 TOTAL = starts[-1] + durs[-1] + 1.6
-json.dump({'v': 9, 'keys': KEYS, 'starts': starts, 'durs': durs, 'total': TOTAL, 'end_start': END_START}, open(os.path.join(ROOT, 'timeline_v10.json'), 'w'), ensure_ascii=False)
+json.dump({'v': 10, 'keys': KEYS, 'starts': starts, 'durs': durs, 'total': TOTAL, 'end_start': END_START}, open(os.path.join(ROOT, 'timeline_v10.json'), 'w'), ensure_ascii=False)
 def BL(i): return starts[i + 1] - starts[i]
 
 # ---------- фирменные слои ----------
@@ -195,7 +195,7 @@ CAPS = {
  'k1': ('ФОРМАТ 1', 'КИОСК ОТ 10 М²', 'НА УЛИЦЕ ИЛИ В ТОРГОВОМ ЦЕНТРЕ'),
  'k2': ('ФОРМАТ 2', 'ФАСАДНОЕ ПОМЕЩЕНИЕ ОТ 80 М²', 'ЗАЛ И ЛЕТНЯЯ ПЛОЩАДКА'),
  's1': ('СОЛЁНЫЕ ХИНКАЛИ', 'ЧЁРНЫЕ НА ЧЕРНИЛАХ КАРАКАТИЦЫ', 'С МОРЕПРОДУКТАМИ'),
- 's2': ('СОЛЁНЫЕ ХИНКАЛИ', 'ЗЕЛЁНЫЕ', 'СО ШПИНАТОМ И СЫРОМ'),
+ 's2': ('СОЛЁНЫЕ ХИНКАЛИ', 'ЗЕЛЁНЫЕ', 'ШПИНАТ И СЫР'),
  's3': ('СОЛЁНЫЕ ХИНКАЛИ', 'КЛАССИЧЕСКИЕ', 'С МЯСОМ И БУЛЬОНОМ'),
 
  'sph': ('БОЛЬШИЕ ЧЕБУРЕКИ-СФЕРЫ', 'ТЕЛЯТИНА • БАРАНИНА • СУЛУГУНИ', 'НЕОБЫЧНО НА ВИД И ОЧЕНЬ ВКУСНО'),
