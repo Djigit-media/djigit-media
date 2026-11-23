@@ -238,9 +238,9 @@ TB_PL = A(brand.plate(990, 1010, 34))
 TB_K = A(tlayer('КИОСК', 900, 64, gold=True)); TB_F = A(tlayer('ФАСАДНОЕ', 900, 64, gold=True, maxw=440))
 TB_KS = A(tlayer('от 10 м²', 700, 40, fill=WHITE)); TB_FS = A(tlayer('от 80 м²', 700, 40, fill=WHITE))
 TB_R1 = A(tlayer('ВЛОЖЕНИЯ ПОД КЛЮЧ', 800, 40, fill=WHITE))
-TB_R1K = A(tlayer('20 000 €', 900, 84, gold=True, maxw=430)); TB_R1F = A(tlayer('45 000 €', 900, 84, gold=True, maxw=430))
+TB_R1K = A(tlayer('от 20 000 €', 900, 74, gold=True, maxw=430)); TB_R1F = A(tlayer('от 45 000 €', 900, 74, gold=True, maxw=430))
 TB_R2 = A(tlayer('ЧИСТАЯ ПРИБЫЛЬ В МЕСЯЦ', 800, 40, fill=WHITE))
-TB_R2K = A(tlayer('3 000 €', 900, 104, gold=True, maxw=440)); TB_R2F = A(tlayer('10 000 €', 900, 104, gold=True, maxw=440))
+TB_R2K = A(tlayer('от 3 000 €', 900, 90, gold=True, maxw=430)); TB_R2F = A(tlayer('от 10 000 €', 900, 90, gold=True, maxw=430))
 TB_PAY = A(tlayer('ОКУПАЕМОСТЬ ДО 1 ГОДА', 900, 56, fill=WHITE, maxw=860))
 def pill(w, h):
     p = Image.new('RGBA', (w, h), (0, 0, 0, 0)); ImageDraw.Draw(p).rounded_rectangle((0, 0, w - 1, h - 1), h // 2, fill=(184, 146, 82, 255)); return A(p)
@@ -401,13 +401,14 @@ def slots_scene(fr, lt, L):
 # ---------- заставка (утверждённая) ----------
 _E = dict(tpl.END)
 for k in ('q1', 'q2', 'btn', 'site'):
-    a, b, c, d = _E[k]; o = 96 if k == 'site' else 34; _E[k] = (a, b + o, c, d + o)
+    a, b, c, d = _E[k]; o = 150 if k == 'site' else 34; _E[k] = (a, b + o, c, d + o)
 tpl.END.update(_E)
 EL = tpl.end_layers(q1t='Хочешь такой стритфуд', q2t='в своём городе?', btnt='ЗАЙМИ СВОЁ МЕСТО'); Lend = {k: (A(im), xy) for k, (im, xy) in EL.items()}
 _ben = tlayer('КРАСИВО • БЫСТРО • ВКУСНО • ДОСТУПНО ПО ЦЕНЕ', 800, 34, gold=True, maxw=960); Lend['ben'] = (A(_ben), (540 - _ben.width // 2, 1018))
-_mag = tlayer('БЕСПЛАТНО ПОСЧИТАЕМ ЭКОНОМИКУ ПОД ТВОЙ ГОРОД', 800, 36, gold=True, maxw=980); Lend['mag'] = (A(_mag), (540 - _mag.width // 2, 1398))
+_mag = tlayer('БЕСПЛАТНО ПОСЧИТАЕМ ЭКОНОМИКУ', 900, 46, gold=True, maxw=980); Lend['mag'] = (A(_mag), (540 - _mag.width // 2, 1392))
+_mag2 = tlayer('ПОД ТВОЙ ГОРОД', 900, 46, gold=True, maxw=980); Lend['mag2'] = (A(_mag2), (540 - _mag2.width // 2, 1452))
 glow = Image.new('RGBA', (W, H), (0, 0, 0, 0)); ImageDraw.Draw(glow).ellipse((290, 380, 790, 880), fill=(214, 170, 100, 90)); GLOW = A(glow.filter(ImageFilter.GaussianBlur(90)))
-order = [('dj', 0.25), ('sub', 0.4), ('ben', 0.5), ('q1', 0.62), ('q2', 0.7), ('btn', 0.85), ('mag', 1.0), ('site', 1.1)]
+order = [('dj', 0.25), ('sub', 0.4), ('ben', 0.5), ('q1', 0.62), ('q2', 0.7), ('btn', 0.85), ('mag', 1.0), ('mag2', 1.05), ('site', 1.15)]
 def endframe(last, BG, t):
     m = ease(t / 0.25); fr = BG * m + last * (1 - m)
     comp(fr, GLOW, 0, 0, ease(t / 0.6))
@@ -457,6 +458,7 @@ def cellimg(k):
     x = (im2.width - CW_) // 2; y = (im2.height - CH_) // 2; return A(im2.crop((x, y, x + CW_, y + CH_)))
 GCELL = {k: cellimg(k) for k in GRID_K}
 GLAB = [A(tlayer(n, 900, 40, gold=True)) for n in GRID_N]
+GTITLE = A(tlayer('СЛАДКИЕ ХИНКАЛИ', 900, 64, gold=True))
 def grid_frame(t, all_lit=False):
     t0 = starts[B['d1']]; lt = t - t0
     fr = BLUR['straw'].copy()
@@ -482,7 +484,7 @@ def sweet_scene(t, key, lt, L):
     if key == 'd1':
         fr = grid_frame(t)
         if lt < 0.38: fr = trans(fr, lt, 0, 1.0)
-        corner(fr, t)
+        corner(fr, t); comp(fr, GTITLE, 540 - GTITLE.shape[1] // 2, 1715 + int(20 * (1 - ease(lt / .35))), ease(lt / .35))
         return fr
     # d2: наезд в клубничный хинкали
     card = card_frame('straw', lt / L, 1.0, 1.08)
