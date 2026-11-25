@@ -150,7 +150,7 @@ HT4 = mixrow()
 HT5 = A(tlayer('В ТВОЁМ ГОРОДЕ', 800, 36, fill=WHITE, maxw=900))
 TY = [PY + 8, PY + 100, PY + 162, PY + 198, PY + 330, PY + 404]
 HB_PILL = None
-LDX, LDY = 25, 186   # угловой логотип вплотную к зоне слева-сверху (Вал 24.11 15:37): с тенью x 65.., y 270.., размер тот же
+LDX, LDY = 5, 156   # v16b (Вал 24.11 23:02): чуть выше и чуть левее; было 25, 186   # угловой логотип вплотную к зоне слева-сверху (Вал 24.11 15:37): с тенью x 65.., y 270.., размер тот же
 _cm = CORNER[..., 3] > 0.5; _cy, _cx = np.where(_cm.any(1))[0], np.where(_cm.any(0))[0]
 CORNER_BOX = [int(LDX + _cx[0]), int(LDY + _cy[0]), int(LDX + _cx[-1]), int(LDY + _cy[-1])]   # рамка углового логотипа с тенью
 CAP_DY_GRAD = 850    # затемнение под подписями поднято вместе с подписями
@@ -698,7 +698,7 @@ def flame_band(t, Wf, Hf, tong=1.0):
 # ---------- сладкая линейка: сетка 2х2, подсвечивается то, что называет голос ----------
 GRID_K = ['straw', 'cherry', 'blue', 'rasp']; GRID_N = ['КЛУБНИКА', 'ВИШНЯ', 'ЧЕРНИКА', 'МАЛИНА']
 GRID_T = [1.18, 1.94, 2.64, 3.46]   # по словам в голосе (whisper)
-CW_, CH_, GG = 488, 610, 14; GX0 = (W - 2 * CW_ - GG) // 2; GY0 = 470
+CW_, CH_, GG = 408, 375, 14; GX0 = (W - 2 * CW_ - GG) // 2; GY0 = 595   # v16d (Вал 24.11 23:18): сетка на всю ширину зоны под логотипом
 def cellimg(k):
     im = RAW[k]; sc = max(CW_ / im.width, CH_ / im.height); im2 = im.resize((int(im.width * sc) + 1, int(im.height * sc) + 1), Image.LANCZOS)
     x = (im2.width - CW_) // 2; y = (im2.height - CH_) // 2; return A(im2.crop((x, y, x + CW_, y + CH_)))
@@ -730,13 +730,14 @@ def sweet_scene(t, key, lt, L):
     if key == 'd1':
         fr = grid_frame(t)
         if lt < 0.38: fr = trans(fr, lt, 0, 1.0)
-        corner(fr, t); O = Ovl(); comp(O, GTITLE, 540 - GTITLE.shape[1] // 2, 1715 + int(20 * (1 - ease(lt / .35))), ease(lt / .35))
+        corner(fr, t); O = Ovl(); comp(O, GTITLE, 540 - GTITLE.shape[1] // 2, GY0 + 2 * CH_ + GG + 8 + int(20 * (1 - ease(lt / .35))), ease(lt / .35))
         return fin(fr, O, 'd1')
     # d2: наезд в клубничный хинкали
     card = card_frame('straw', lt / L, 1.0, 1.08)
     if lt < 0.5:
         g = grid_frame(t, True); q = ease(lt / 0.5); z = 1 + 1.25 * q
         ccx = GX0 + CW_ / 2; ccy = GY0 + CH_ / 2; cw, ch = W / z, H / z
+        if 'd1' in TF: _t = TF['d1']; ccx = _t[5] + (ccx - _t[0]) * _t[4]; ccy = _t[6] + (ccy - _t[1]) * _t[4]   # v16b: наезд в клубничный хинкали на его новом месте
         x0 = min(max(ccx - cw / 2, 0), W - cw); y0 = min(max(ccy - ch / 2, 0), H - ch)
         gz = cv2.resize(g[int(y0):int(y0 + ch), int(x0):int(x0 + cw)], (W, H), interpolation=cv2.INTER_LINEAR)
         fr = gz * (1 - q) + card * q
@@ -815,7 +816,7 @@ def frame(fi):
         fr = shot_img(k2, st / sl, z0, z1, fx, fy, dx, dy, cy)
         if st < 0.38: fr = trans(fr, st, (i * 3 + si) % 4, 1.0 if si == 0 else 0.7)
         fr = brand_dark(fr, t)
-        if not (key == 'sph' and si == 0) and key not in SIGN_SHOTS: corner(fr, t)   # на кадре с вывеской DJIGIT угловой логотип не ставим (не налезает на вывеску)
+        corner(fr, t)   # v16b (Вал 24.11 23:02): логотип на всех кадрах   # на кадре с вывеской DJIGIT угловой логотип не ставим (не налезает на вывеску)
         O = Ovl()
         if key in CAPS: draw_caps(O, mkcap(CAPS[key]), lt, L)
         return fin(fr, O, 'cap')
@@ -852,7 +853,7 @@ if __name__ == '__main__':
             MEASURE.clear()
         for fi in range(EF): frame(fi); acc()
         for j in range(NF - EF): endframe(Z, Z, j / FPS); acc()
-        TG = {'hook': ('top', 270), 'cap': ('bottom', 285), 'd1': ('top', 285), 'end': ('center', 285)}
+        TG = {'hook': ('top', 270), 'cap': ('bottom', 285), 'd1': ('top', 595), 'end': ('center', 285)}   # v16b: сетка сладких ниже углового логотипа (низ логотипа 611)
         out = {}
         for g, (x0, y0, x1, y1) in BB.items():
             al, ty0 = TG.get(g, ('top', 625)); ty1 = 1490; tx0, tx1 = (65, 1015) if g == 'hook' else (120, 960)   # хук выше кнопок: по ширине до 6% от краёв (Вал 15:37)
