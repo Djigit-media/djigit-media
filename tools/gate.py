@@ -75,6 +75,15 @@ if __name__ == '__main__':
     mus = a.music.lower(); stop = any(w in mus for w in STOP_MUSIC)
     if stop and a.music_waiver: res.append(('7 МУЗЫКА', True, f'{a.music}: оставлена по решению Вала ({a.music_waiver})'))
     else: res.append(('7 МУЗЫКА', not stop, a.music or 'не указана'))
+    # 8 пустые и плоские кадры (26.11: в исходнике хачапури кадры 786+ пустые, попали в крючок)
+    cap = cv2.VideoCapture(a.video); flat = []; k = 0
+    while True:
+        okf, fx = cap.read()
+        if not okf: break
+        gx = cv2.cvtColor(cv2.resize(fx, (270, 480)), cv2.COLOR_BGR2GRAY)
+        if gx.std() < 8 or cv2.Laplacian(gx, cv2.CV_64F).var() < 4: flat.append(round(k / 30, 2))
+        k += 1
+    res.append(('8 ПУСТЫЕ КАДРЫ', not flat, f'кадров {k}, пустых {len(flat)}' + (f': {flat[:10]}' if flat else '')))
     for n, ok, info in res: print(f"{'PASS' if ok else 'FAIL'} {n}: {info}")
     print('ИТОГ:', 'ВСЁ PASS' if all(r[1] for r in res) else 'ЕСТЬ FAIL')
     sys.exit(0 if all(r[1] for r in res) else 1)
