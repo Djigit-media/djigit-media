@@ -1,0 +1,1 @@
+Восстановление в новой сессии: mkdir -p /home/claude/work/prev /home/claude/work/tpl && cp factory/style/brand.py factory/style/*.ttf /home/claude/work/prev/ && cp factory/style/tpl.py /home/claude/work/tpl/
