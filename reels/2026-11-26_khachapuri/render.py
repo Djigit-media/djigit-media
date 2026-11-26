@@ -9,7 +9,7 @@ D = os.path.dirname(os.path.abspath(__file__))
 SRC = os.environ.get('SRC', D + '/src/src.mov'); OUT = os.environ.get('OUT', '/home/claude/work/kh/khachapuri_v1.mp4')
 W, H, FPS = 1080, 1920, 30
 ZX0, ZY0, ZX1, ZY1 = 65, 270, 960, 1500
-L1, L2, L3 = 'ДИЕТА ПОДОЖДЁТ', 'СЫР ВНУТРИ И СВЕРХУ', 'хачапури по-мегрельски'
+L1, L2, L3 = 'ХАЧАПУРИ', 'по-мегрельски', 'сыр внутри и сверху'   # Вал 26.11: в сетке название блюда, как «КУБДАРИ», «ЗАПЕЧЁННЫЙ КАРП»
 HOOK_END = 3.0; LOGO_IN = 3.0; END_T = 23.4
 STEPS = [(3.0, 8.0, 'ШАГ 1', 'ЗАМЕШИВАЕМ ТЕСТО'), (8.0, 10.8, 'ШАГ 2', 'ТЕСТО ОТДЫХАЕТ'),
          (10.8, 15.1, 'ШАГ 3', 'СЫР ВНУТРЬ, ЗАЩИПЫВАЕМ'), (15.1, 18.3, 'ШАГ 4', 'СМАЗЫВАЕМ, СЫР СВЕРХУ'),
@@ -47,9 +47,9 @@ def tlayer(t, w8, sz, fill=None, gold=False, maxw=800, shadow=235):
 tpl.CORNER['sub'] = (52, 400, 381, 410)
 C0 = A(tpl.corner_layer().crop((0, 0, 460, 480))); _m = C0[..., 3] > 0.5
 _cy, _cx = np.where(_m.any(1))[0], np.where(_m.any(0))[0]; REF_TL = (5 + _cx[0], 156 + _cy[0])
-CS = 0.8; CORNER = scaled(C0, CS); _m = CORNER[..., 3] > 0.5
+CS = 0.72; CORNER = scaled(C0, CS); _m = CORNER[..., 3] > 0.5
 _cy, _cx = np.where(_m.any(1))[0], np.where(_m.any(0))[0]
-LDX, LDY = int(ZX0 - _cx[0]), int(ZY0 - _cy[0])   # рамка логотипа с тенью ровно от угла зоны 65,270
+LDX, LDY = int(25 - _cx[0]), int(190 - _cy[0])   # Вал 26.11 23:32: выше и левее, чтобы не мешал видео; рамка с тенью от 25,190
 CORNER_BOX = [int(LDX + _cx[0]), int(LDY + _cy[0]), int(LDX + _cx[-1]), int(LDY + _cy[-1])]
 HB = [int(v * CS) for v in tpl.CORNER['horse']]; HXY = (HB[0] - 10, HB[1] - 10, HB[2] + 10, HB[3] + 10)
 SWEEPS = [LOGO_IN + 0.5 + 6 * k for k in range(5)]
@@ -58,9 +58,9 @@ CDARK = (1 - 0.6 * np.clip(1 - np.sqrt(((XX - LDX) / 520) ** 2 + ((YY - LDY) / 5
 # крючок: плашка на всю ширину зоны
 PX, PY, PW, PH = ZX0, 300, ZX1 - ZX0, 440
 PLATE = A(brand.plate(PW, PH, 34))
-T1 = A(tlayer(L1, 900, 104, gold=True, maxw=800)); T2 = A(tlayer(L2, 900, 104, gold=True, maxw=800))
+T1 = A(tlayer(L1, 900, 150, gold=True, maxw=800)); T2 = A(tlayer(L2, 700, 58, fill=(255, 255, 255, 255), maxw=800))
 T3 = A(tlayer(L3.upper(), 700, 42, fill=(255, 255, 255, 255), maxw=780))
-TY = [PY + 34, PY + 168, PY + 318]
+TY = [PY + 30, PY + 215, PY + 320]
 grad = np.zeros((H, W, 1), np.float32); grad[:, :, 0] = (np.clip((np.arange(H) - 950) / 600, 0, 1) ** 1.2 * 0.7)[:, None]
 CAPY_A, CAPY_B = 1250, 1325
 caps = []
@@ -112,7 +112,7 @@ def frame(f, t):
         comp(fr, PLATE, PX, PY, a)
         spp = min(max((t - 0.5) / 1.1, 0), 1)
         for L, yy in ((T1, TY[0]), (T2, TY[1]), (T3, TY[2])):
-            comp(fr, shimmer(L, spp) if (0 < spp < 1 and L is not T3) else L, 512 - L.shape[1] // 2, yy, a)
+            comp(fr, shimmer(L, spp) if (0 < spp < 1 and L is T1) else L, 512 - L.shape[1] // 2, yy, a)
     if t >= LOGO_IN:
         g = min(1, ease((t - LOGO_IN) / 0.3)); fr = fr * (1 - grad * g); fr = fr * (CDARK * g + (1 - g)); corner(fr, t)
         dots(fr, t)

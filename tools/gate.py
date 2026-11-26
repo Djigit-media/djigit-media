@@ -5,6 +5,7 @@
 import argparse, json, re, ast, subprocess, hashlib, sys, numpy as np, cv2
 ZONE = (65, 270, 960, 1500)   # Meta Reels: 6% сбоку, 14% сверху; низ 1500 (обычный пост). Выше 1100 справа можно до 1015 (кнопок там нет)
 ZONE_R_TOP = (1015, 1100)
+LOGO_ZONE = (5, 150, 960, 1500)   # исключение Вала для углового логотипа (Пульт 0001: 5,156; 26.11: выше и левее)
 CONTACTS = {'djigit.biz', 'djigit.com.ua', 'partners@djigit.biz', 'info@djigit.com.ua', '+49 174 760 55 42', '+38 067 460 00 04'}
 STOP_MUSIC = ['kochari']
 def probe(p):
@@ -34,7 +35,7 @@ if __name__ == '__main__':
     # 2 безопасная зона: рамка слоя надписей каждого кадра после раскладки + угловой логотип
     zl = json.load(open(a.zone_log)); x0, y0, x1, y1 = ZONE; bad = []
     lb = zl['logo']
-    if not (lb[0] >= x0 and lb[1] >= y0 and lb[2] <= x1 and lb[3] <= y1): bad.append(f'логотип {lb}')
+    if not (lb[0] >= LOGO_ZONE[0] and lb[1] >= LOGO_ZONE[1] and lb[2] <= LOGO_ZONE[2] and lb[3] <= LOGO_ZONE[3]): bad.append(f'логотип {lb}')
     for i, f in enumerate(zl['frames']):
         g, bx0, by0, bx1, by1 = f[:5]; xl = f[5] if len(f) > 5 else (bx1 if by1 >= ZONE_R_TOP[1] else -1)   # xl: правый край надписей ниже 1100 px
         if bx0 < x0 or by0 < y0 or by1 > y1 or bx1 > ZONE_R_TOP[0] or xl > x1: bad.append(f'кадр {i} ({g}) {bx0},{by0}..{bx1},{by1}')
