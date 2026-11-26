@@ -42,8 +42,12 @@ def tlayer(t, w8, sz, fill=None, gold=False, maxw=800, shadow=235):
     while brand.width(t, w8, sz) > maxw: sz -= 2
     tw = int(brand.width(t, w8, sz)) + 40; L = Image.new('RGBA', (tw, int(sz * 1.5)), (0, 0, 0, 0))
     brand.draw_text(L, tw // 2, 0, t, w8, sz, fill, gold=gold)
-    sh = Image.new('RGBA', L.size, (0, 0, 0, 0)); sh.putalpha(L.split()[3].filter(ImageFilter.GaussianBlur(6)).point(lambda v: min(255, v * shadow // 255)))
-    out = Image.new('RGBA', (tw + 30, L.height + 30), (0, 0, 0, 0)); out.alpha_composite(sh, (15, 19)); out.alpha_composite(L, (15, 15))
+    out = Image.new('RGBA', (tw + 30, L.height + 30), (0, 0, 0, 0))
+    if shadow:   # двойная мягкая тень вместо подложки: читается на светлом, не закрывает кадр
+        for bl, op, dy in ((14, 0.55), (3, 0.9)) and ((14, 0.55, 6), (3, 0.9, 3)):
+            sh = Image.new('RGBA', L.size, (0, 0, 0, 0)); sh.putalpha(L.split()[3].filter(ImageFilter.GaussianBlur(bl)).point(lambda v, o=op: min(255, int(v * 2.2 * o * shadow / 255))))
+            out.alpha_composite(sh, (15, 15 + dy))
+    out.alpha_composite(L, (15, 15))
     return out
 # угловой логотип: стандарт tpl, масштаб 0.8, левый-верхний угол там же, где в KH v16d (Вал 26.11: «немножко уменьшить»)
 tpl.CORNER['sub'] = (52, 400, 381, 410)
@@ -87,7 +91,7 @@ def hook_group(t):
         G[y0:y1, x0:x1, :3] = G[y0:y1, x0:x1, :3] * (1 - al) + l[..., :3] * al; G[y0:y1, x0:x1, 3] = np.maximum(G[y0:y1, x0:x1, 3], l[..., 3])
     return G
 grad = np.zeros((H, W, 1), np.float32); grad[:, :, 0] = (np.clip((np.arange(H) - 950) / 600, 0, 1) ** 1.2 * 0.7)[:, None]
-CAPY_A, CAPY_B = 1250, 1325
+CAPY_A, CAPY_B = 1302, 1374   # Вал 27.11 00:03: шаги почти внизу, низ черты 1490 (зона Reels до 1500)
 caps = []
 for s0, s1, a, b in STEPS:
     LA = A(tlayer(a, 900, 56, gold=True)); szb = 68
@@ -148,14 +152,12 @@ def frame(f, t):
         if t > HOOK_END - 0.25: G = A(Image.fromarray(np.clip(G, 0, 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(6 * ease((t - (HOOK_END - 0.25)) / 0.25))))
         comp_c(fr, G, PX + PW / 2, PY + PH / 2, sc, a)
     if t >= LOGO_IN:
-        g = min(1, ease((t - LOGO_IN) / 0.3)); fr = fr * (1 - grad * g); fr = fr * (CDARK * g + (1 - g)); corner(fr, t)
+        g = min(1, ease((t - LOGO_IN) / 0.3)); fr = fr * (CDARK * g + (1 - g)); corner(fr, t)   # Вал 27.11: без затемнения под шагами
         dots(fr, t)
     for s0, s1, LA, WL, tot, BD in caps:
         if s0 <= t < s1:
             tt = t - s0; T = s1 - s0; out = 1 - ease((tt - (T - 0.22)) / 0.22) if tt > T - 0.22 else 1
             aa = ease(tt / 0.3) * out; dy = int(30 * (1 - ease(tt / 0.3)))
-            rw = int(BD.shape[1] * ease(tt / 0.28)); 
-            if rw > 4: c0 = (BD.shape[1] - rw) // 2; comp(fr, BD[:, c0:c0 + rw], 512 - rw // 2, DOT_Y - 70, out)
             LAs = shimmer(LA, min(max((tt - 0.3) / 0.9, 0), 1)) if 0.3 < tt < 1.2 else LA
             comp_c(fr, LAs, 512, CAPY_A + dy + LA.shape[0] / 2, 0.6 + 0.4 * eback(tt / 0.35), aa)
             for k, (blurs, cx) in enumerate(WL):
