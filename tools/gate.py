@@ -84,6 +84,14 @@ if __name__ == '__main__':
         if gx.std() < 8 or cv2.Laplacian(gx, cv2.CV_64F).var() < 4: flat.append(round(k / 30, 2))
         k += 1
     res.append(('8 ПУСТЫЕ КАДРЫ', not flat, f'кадров {k}, пустых {len(flat)}' + (f': {flat[:10]}' if flat else '')))
+    # 9 уникальность (правило 0023): метаданные очищены, без чужих тегов (дата съёмки, место, устройство, комментарии)
+    import json as _j
+    tg = _j.loads(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format_tags:stream_tags', '-of', 'json', a.video], capture_output=True, text=True).stdout or '{}')
+    keys = set((tg.get('format', {}).get('tags') or {}).keys())
+    for st in tg.get('streams', []): keys |= set((st.get('tags') or {}).keys())
+    allowed = {'major_brand', 'minor_version', 'compatible_brands', 'language', 'handler_name', 'vendor_id', 'encoder'}
+    extra = sorted(k for k in keys if k not in allowed)
+    res.append(('9 УНИКАЛЬНОСТЬ', not extra, 'метаданные чистые' if not extra else f'лишние теги: {extra}'))
     for n, ok, info in res: print(f"{'PASS' if ok else 'FAIL'} {n}: {info}")
     print('ИТОГ:', 'ВСЁ PASS' if all(r[1] for r in res) else 'ЕСТЬ FAIL')
     sys.exit(0 if all(r[1] for r in res) else 1)
