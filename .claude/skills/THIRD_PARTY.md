@@ -11,3 +11,4 @@ Design skills copied as-is from their authors:
 - video-to-superprompt (mengto/skills)
 - kling-4-prompting, kling-3-prompting (aedev-tools)
 - 53 marketing skills (ab-testing … video, полный список в папках): https://github.com/coreyhaines31/marketingskills (MIT), установлены 26.11.2026 для DJIGIT, Quantum Core, 1000+ Network
+- ig-repurpose, ig-reply, ig-comment, ig-audit, ig-profile, ig-caption, ig-story, ig-dm, ig-human, ig-viral: github.com/Jakeschincariol/instagram-agent-skill (MIT, Jake Schincariol). ig-plan, ig-carousel, ig-reel уже стоят как личные скиллы Вала.
