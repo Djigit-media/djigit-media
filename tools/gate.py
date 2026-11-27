@@ -92,6 +92,23 @@ if __name__ == '__main__':
     allowed = {'major_brand', 'minor_version', 'compatible_brands', 'language', 'handler_name', 'vendor_id', 'encoder'}
     extra = sorted(k for k in keys if k not in allowed)
     res.append(('9 УНИКАЛЬНОСТЬ', not extra, 'метаданные чистые' if not extra else f'лишние теги: {extra}'))
+    # 10 мёртвый фон (27.11: в «3 бизнеса» 3,0–9,6 с тёмное размытое пятно вместо картинки, Вал: «что ты выдал?»)
+    # кадр мёртвый, если средняя яркость < 50 и медиана деталей фона (без ярких букв) <= 1; подряд больше 1 с = FAIL
+    cap = cv2.VideoCapture(a.video); dead = []; k = 0
+    while True:
+        okf, fx = cap.read()
+        if not okf: break
+        if k % 15 == 0:
+            gx = cv2.cvtColor(cv2.resize(fx, (270, 480)), cv2.COLOR_BGR2GRAY); lp = np.abs(cv2.Laplacian(gx, cv2.CV_64F))
+            dead.append((k / 30, gx.mean() < 50 and float(np.median(lp[gx < 170])) <= 1))
+        k += 1
+    runs = []; st = None
+    for t, d in dead + [(k / 30, False)]:
+        if d and st is None: st = t
+        if not d and st is not None:
+            if t - st > 1.0: runs.append(f'{st:.1f}–{t:.1f} с')
+            st = None
+    res.append(('10 ЖИВОЙ ФОН', not runs, 'тёмных размытых участков нет' if not runs else 'тёмный размытый фон: ' + ', '.join(runs)))
     for n, ok, info in res: print(f"{'PASS' if ok else 'FAIL'} {n}: {info}")
     print('ИТОГ:', 'ВСЁ PASS' if all(r[1] for r in res) else 'ЕСТЬ FAIL')
     sys.exit(0 if all(r[1] for r in res) else 1)
