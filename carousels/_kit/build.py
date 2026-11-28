@@ -63,7 +63,7 @@ def slide_html(c, s, i):
     if not s.get('final') and not s.get('cover'):
         out.append(f"<div class=ft>{c['cta_html']}</div>")
     return f"<html><head><meta charset=utf-8><style>{CSS}</style></head><body>{''.join(out)}</body></html>"
-STOP = ['хинкальн', 'fast casual', 'напиши франшиза', 'пиши «франшиза»', 'плевать']   # Ошибки и защита п.0в, 3а: придуманные названия и запрещённые слова
+STOP = ['хинкальн', 'посчитаю', 'покажу цифры', 'fast casual', 'напиши франшиза', 'пиши «франшиза»', 'плевать']   # Ошибки и защита п.0в, 3а: придуманные названия и запрещённые слова
 def stop_check(c):
     txt = json.dumps(c, ensure_ascii=False).lower(); bad = [w for w in STOP if w in txt]
     if bad: raise SystemExit('FAIL стоп-слова: ' + ', '.join(bad))
