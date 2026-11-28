@@ -63,8 +63,12 @@ def slide_html(c, s, i):
     if not s.get('final') and not s.get('cover'):
         out.append(f"<div class=ft>{c['cta_html']}</div>")
     return f"<html><head><meta charset=utf-8><style>{CSS}</style></head><body>{''.join(out)}</body></html>"
+STOP = ['хинкальн', 'fast casual', 'напиши франшиза', 'пиши «франшиза»', 'плевать']   # Ошибки и защита п.0в, 3а: придуманные названия и запрещённые слова
+def stop_check(c):
+    txt = json.dumps(c, ensure_ascii=False).lower(); bad = [w for w in STOP if w in txt]
+    if bad: raise SystemExit('FAIL стоп-слова: ' + ', '.join(bad))
 def main(d):
-    c = json.load(open(os.path.join(d, 'slides.json'))); os.makedirs(os.path.join(d, 'slides'), exist_ok=True); files = []
+    c = json.load(open(os.path.join(d, 'slides.json'))); stop_check(c); os.makedirs(os.path.join(d, 'slides'), exist_ok=True); files = []
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path='/usr/bin/google-chrome'); pg = b.new_page(viewport={'width': 1080, 'height': 1350})
         for i, s in enumerate(c['slides'], 1):
